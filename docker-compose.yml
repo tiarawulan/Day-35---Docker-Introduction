@@ -1,32 +1,26 @@
+version: '3'
+
 services:
-  clickhouse:
-    image: clickhouse/clickhouse-server
-    user: "101:101"
-    container_name: clickhouse
-    hostname: clickhouse
-    volumes:
-      - ${PWD}/fs/volumes/clickhouse/etc/clickhouse-server/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
-      - ${PWD}/fs/volumes/clickhouse/etc/clickhouse-server/users.d/users.xml:/etc/clickhouse-server/users.d/users.xml
-      - ${PWD}/fs/volumes/clickhouse/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-    ports:
-      - "8123:8123"
-      - "9000:9000"
-    depends_on:
-      - postgres
   postgres:
-    container_name: postgres
-    hostname: postgres
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: ${PG_USER}
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-      POSTGRES_DB: ${PG_DB}
+      POSTGRES_DB: source_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: i27x;!?UVWQg8T
     ports:
-      - "5432:5432"
-    volumes:
-      - ${PWD}/fs/volumes/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical" #required for MaterializedPostgreSQL
+      - "5433:5432"
+
+  etl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: source_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: i27x;!?UVWQg8T
+
+
